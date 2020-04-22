@@ -1,26 +1,70 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
 
-function App() {
+import RegisterPage from './components/RegisterPage';
+import LoginPage from './components/LoginPage';
+import UserDashboard from './components/UserDashboard';
+import AdminDashboard from './components/AdminDashboard';
+
+import { registerNewUser, logInUser, logOutUser } from './backend';
+
+export default function App() {
+  const [loggedInUser, setLoggedInUser] = useState();
+  const [shouldRegister, setShouldRegister] = useState(false);
+
+  function handleRegister ({username, password, coordinates}) {
+    registerNewUser({ username, password, coordinates })
+      .then(() =>{
+        setShouldRegister(false);
+        alert('Registration successful, please log in now.');
+      })
+      .catch((reason) => {
+        alert(`Registration failed with reason:\n${reason}`);
+      });
+  }
+
+  function handleLogIn (username, password) {
+    logInUser(username, password)
+      .then((res) => {
+        const { username, isAdmin } = res;
+        setLoggedInUser({ username, isAdmin });
+      })
+      .catch(() => {
+        setLoggedInUser();
+        alert('Unable to log in');
+      });
+  }
+
+  function handleLogOut () {
+    logOutUser()
+      .then(() => {
+        setLoggedInUser();
+      })
+      .catch(() => {
+        alert('Unable to log out')
+      });
+  }
+
+  if (!loggedInUser) {
+    return (
+      shouldRegister
+        ? <RegisterPage
+            onSubmit={handleRegister}
+            onLoginClick={() => setShouldRegister(false)}
+          />
+        : <LoginPage
+            onSubmit={handleLogIn}
+            onRegisterClick={() => setShouldRegister(true)}
+          />
+    );
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div>Hello, {loggedInUser.username}</div>
+      <button onClick={handleLogOut}>LogOut</button>
+      {loggedInUser.isAdmin
+        ? <AdminDashboard />
+        : <UserDashboard />}
     </div>
   );
 }
-
-export default App;
