@@ -30,6 +30,6 @@ app.use(router.routes())
 
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
+module.exports = app.listen(PORT, () => {
   console.log("==> Listening on port %s. Visit http://localhost:%s/", PORT, PORT);
 });
